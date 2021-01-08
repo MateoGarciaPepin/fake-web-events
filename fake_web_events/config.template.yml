@@ -38,6 +38,25 @@ landing_pages:
   product_a: 0.25
   product_b: 0.15
 
+events:
+  home:
+    click_product_a:
+      prob: 0.5
+      properties:
+    click_product_b:
+      prob: 0.3
+      properties:
+    dropdown_select:
+      prob: 0.2
+      properties:
+        drp_option:
+          type: string
+          values: ['text1', 'text2', 'text3', 'text4']
+        drp_order:
+          type: int
+          values: [1, 4]
+
+
 visits_per_hour:
   0: 0.0273
   1: 0.0185

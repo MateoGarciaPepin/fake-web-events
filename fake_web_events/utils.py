@@ -46,3 +46,15 @@ class WeightedRandom:
         pages = [page for page in self.config['pages'].get(page).keys()]
         weights = list(self.config['pages'].get(page).values())
         return pages, weights
+
+    def get_events(self, page: str) -> Tuple[List[str], List[float], dict]:
+        """
+        Returns list of pages and weights from config
+        """
+        events_dict = self.config['events'].get(page)
+        if events_dict is not None:
+            events = [event for event in self.config['events'].get(page).keys()]
+            weights = [self.config['events'].get(page).get(event).get('prob') for event in events]
+            properties = {event:self.config['events'].get(page).get(event).get('properties') for event in events}
+            return events, weights, properties
+        else: return [], [], {}
