@@ -115,4 +115,7 @@ class Simulation():
             self.create_sessions()
             self.wait()
             for session in self.cur_sessions:
-                yield session.asdict()
+                if session.is_new_page:
+                    yield session.asdict()
+                elif not session.is_new_page and session.custom_event != 'pageview':
+                    yield session.asdict()

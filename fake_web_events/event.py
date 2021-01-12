@@ -46,7 +46,7 @@ class Event(Faker, WeightedRandom):
         Calculate which one should be the next page
         """
         events, weights, properties = self.get_events(self.current_page)
-        if len(events>0):
+        if len(events) > 0:
             self.custom_event = random.choices(events, weights=weights)[0]
             self.event_properties = properties[self.custom_event]
         else:
