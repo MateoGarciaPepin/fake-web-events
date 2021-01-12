@@ -27,6 +27,8 @@ def load_config(config_path: str = None) -> dict:
         logging.info('config.yml not found, loading default template.')
         with open(_get_abs_path('config.template.yml'), 'r') as f:
             return yaml.safe_load(f)
+    except:
+        raise Exception('Error in configuration File')
 
 
 class WeightedRandom:
@@ -51,14 +53,16 @@ class WeightedRandom:
         weights = list(self.config['pages'].get(page).values())
         return pages, weights
 
-    def get_events(self, page: str) -> Tuple[List[str], List[float], dict]:
+    def get_events(self, page: str, prereq: str = None) -> Tuple[List[str], List[float], dict]:
         """
         Returns list of pages and weights from config
         """
         events_dict = self.config['events'].get(page)
         if events_dict is not None:
-            events = [event for event in self.config['events'].get(page).keys()]
-            weights = [self.config['events'].get(page).get(event).get('prob') for event in events]
-            properties = {event:self.config['events'].get(page).get(event).get('properties') for event in events}
+            events = [event for event in events_dict.keys() if events_dict.get(event).get('prereq') == prereq]
+            if len(events) == 0:
+                events = [event for event in events_dict.keys() if events_dict.get(event).get('prereq') is None]
+            weights = [events_dict.get(event).get('prob') for event in events]
+            properties = {event: events_dict.get(event).get('properties') for event in events}
             return events, weights, properties
         else: return [], [], {}

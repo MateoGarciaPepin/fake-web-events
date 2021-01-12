@@ -1,15 +1,15 @@
 pages:
   home:
      home: 0.45
-     product_a: 0.17
-     product_b: 0.12
-     session_end: 0.26
+     product_a: 0.22
+     product_b: 0.18
+     session_end: 0.15
 
   product_a:
-     product_a: 0.5
+     product_a: 0.6
      home: 0.18
      cart: 0.12
-     session_end: 0.2
+     session_end: 0.1
 
   product_b:
      product_b: 0.4
@@ -18,20 +18,20 @@ pages:
      session_end: 0.24
 
   cart:
-     cart: 0.25
-     payment: 0.5
-     home: 0.15
-     session_end: 0.1
+     cart: 0.3
+     payment: 0.55
+     home: 0.1
+     session_end: 0.05
 
   payment:
-     payment: 0.45
-     confirmation: 0.4
+     payment: 0.4
+     confirmation: 0.45
      cart: 0.1
      session_end: 0.05
 
   confirmation:
-     confirmation: 0.4
-     session_end: 0.6
+     confirmation: 0.6
+     session_end: 0.4
 
 landing_pages:
   home: 0.6
@@ -41,13 +41,25 @@ landing_pages:
 events:
   home:
     click_product_a:
+      prereq:
       prob: 0.5
       properties:
+
     click_product_b:
+      prereq:
       prob: 0.3
       properties:
-    dropdown_select:
+
+    dropdown_click:
+      prereq:
       prob: 0.2
+      properties:
+        test_prop:
+          type: 'email'
+
+    dropdown_select:
+      prereq: 'dropdown_click'
+      prob: 1
       properties:
         drp_option:
           type: 'string'
@@ -55,39 +67,165 @@ events:
         drp_order:
           type: 'int'
           values: [1, 4]
-  product_a:
-    click_product_b:
-      prob: 0.3
-      properties:
-    dropdown_select:
-        prob: 0.7
-        properties:
-          drp_option:
-            type: 'string'
-            values: [ 'text1', 'text2', 'text3', 'text4' ]
-          drp_order:
-            type: 'int'
-            values: [ 1, 4 ]
-          drp_price:
-            type: 'float'
-            values: [ 30.3, 70.5 ]
-  product_b:
-    click_product_a:
-      prob: 0.3
-      properties:
-    dropdown_select:
-        prob: 0.7
-        properties:
-          drp_option:
-            type: 'string'
-            values: [ 'text1', 'text2', 'text3', 'text4' ]
-          drp_order:
-            type: 'int'
-            values: [ 1, 4 ]
-          drp_price:
-            type: 'float'
-            values: [30.3, 70.5]
 
+  product_a:
+    click_home:
+      prereq:
+      prob: 0.05
+      properties:
+
+    click_product_b:
+      prereq:
+      prob: 0.05
+      properties:
+
+    click_zoom:
+      prereq:
+      prob: 0.6
+      properites:
+
+    add_to_cart:
+      prereq:
+      prob: 0.3
+      properties:
+        qty:
+          type: 'int'
+          values: [ 1, 10]
+        price:
+          type: 'float'
+          values: [ 10, 30 ]
+
+    remove_from_cart:
+      prereq: 'add_to_cart'
+      prob: 0.3
+      properties:
+        time_passed_sec:
+          type: 'float'
+          values: [0, 10]
+
+    go_to_cart:
+      prereq: 'add_to_cart'
+      prob: 0.7
+      properties:
+
+  product_b:
+    click_home:
+      prereq:
+      prob: 0.05
+      properties:
+
+    click_product_b:
+      prereq:
+      prob: 0.05
+      properties:
+
+    click_zoom:
+      prereq:
+      prob: 0.5
+      properties:
+
+    add_to_cart:
+      prereq:
+      prob: 0.4
+      properties:
+        qty:
+          type: 'int'
+          values: [ 1, 10 ]
+        price:
+          type: 'float'
+          values: [ 10, 30 ]
+
+    remove_from_cart:
+      prereq: 'add_to_cart'
+      prob: 0.3
+      properties:
+        time_passed_sec:
+          type: 'float'
+          values: [ 0, 10 ]
+
+    go_to_cart:
+      prereq: 'add_to_cart'
+      prob: 0.7
+      properties:
+  cart:
+    go_to_home:
+      prereq:
+      prob: 0.1
+      properties:
+
+    go_to_pay:
+      prereq:
+      prob: 0.6
+      properties:
+        time_passed_sec:
+          type: 'float'
+          values: [ 0, 10 ]
+
+    clear_cart:
+      prereq:
+      prob: 0.2
+      properties:
+        num_items_cart:
+          type: 'int'
+          values: [1, 5]
+
+    confirm_clear:
+      prereq: 'clear_cart'
+      prob: 0.8
+      properties:
+
+    cancel_clear:
+      prereq: 'clear_cart'
+      prob: 0.2
+      properties:
+
+  payment:
+    go_to_home:
+      prereq:
+      prob: 0.05
+      properties:
+
+    add_cc:
+      prereq:
+      prob: 0.8
+      properties:
+        franchise:
+          type: 'str'
+          values: ['mastercard','visa','american_express']
+
+    select_cc:
+      prereq:
+      prob: 0.15
+      properties:
+        franchise:
+          type: 'str'
+          values: [ 'mastercard','visa','american_express' ]
+
+    confirm_payment:
+      prereq: 'select_cc'
+      prob: 0.9
+      properites:
+
+    cancel_payment:
+      prereq: 'select_cc'
+      prob: 0.1
+      properties:
+
+  confirmation:
+    go_to_gome:
+      prereq:
+      prob: 0.15
+      properties:
+
+    print_confirmation:
+      prereq:
+      prob: 0.6
+      properties:
+
+    exit_session:
+      prereq:
+      prob: 0.25
+      properties:
 
 visits_per_hour:
   0: 0.0273
