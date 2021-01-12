@@ -22,6 +22,7 @@ class Simulation():
             config_path: str = None
             ):
 
+        self.config = load_config(config_path)
         self.user_pool = UserPool(size=user_pool_size)
         self.cur_sessions = []
         self.init_time = init_time
@@ -30,7 +31,6 @@ class Simulation():
         self.sessions_per_day = sessions_per_day
         self.qty_events = 0
         self.rate = self.get_rate_per_step()
-        self.config = load_config(config_path)
 
     def __str__(self) -> str:
         """
