@@ -13,7 +13,7 @@ class Event(Faker, WeightedRandom):
     Creates events and keeps tracks of sessions
     """
 
-    def __init__(self, current_timestamp: datetime, user: User, batch_size: int):
+    def __init__(self, current_timestamp: datetime, user: User, batch_size: int, always_forward: bool):
         super().__init__(['en_US'])
         self.previous_page = None
         self.current_page = self.select('landing_pages')
@@ -21,15 +21,16 @@ class Event(Faker, WeightedRandom):
         self.event_properties = {}
         self.user = user
         self.batch_size = batch_size
-        self.current_timestamp = self.randomize_timestamp(current_timestamp)
+        self.current_timestamp = self.randomize_timestamp(current_timestamp, always_forward)
         self.is_new_page = True
 
-    def randomize_timestamp(self, timestamp: datetime) -> datetime:
+    def randomize_timestamp(self, timestamp: datetime, always_forward: bool) -> datetime:
         """
         Randomize timestamps so not all events come with the same timestamp value
         """
         range_milliseconds = int(self.batch_size * 0.3 * 1000)
-        random_interval = random.randrange(-range_milliseconds, range_milliseconds)
+        min_range = 0 if always_forward else - range_milliseconds
+        random_interval = random.randrange(min_range, range_milliseconds)
         return timestamp + timedelta(milliseconds=random_interval)
 
     def get_next_page(self) -> str:
@@ -149,12 +150,12 @@ class Event(Faker, WeightedRandom):
         """
         return self.current_page != 'session_end'
 
-    def update(self, timestamp: datetime) -> bool:
+    def update(self, timestamp: datetime, always_forward: bool) -> [bool, str]:
         """
         Update state / Change pages
         """
         if self.is_active():
-            self.current_timestamp = self.randomize_timestamp(timestamp)
+            self.current_timestamp = self.randomize_timestamp(timestamp, always_forward)
             self.previous_page = self.current_page
             self.get_next_page()
             self.is_new_page = self.current_page != self.previous_page
