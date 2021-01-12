@@ -23,6 +23,8 @@ class User(Faker, WeightedRandom):
         self.referer_name = self.select('utm_sources')
         self.referer_medium = 'search' if self.referer_name in ['google', 'bing'] else 'internal'
         self.referer_url = f'www.{self.referer_name}.com'
+        self.email = self.ascii_free_email()
+        self.user_id = str(self.uuid4())
 
     def geo(self) -> dict:
         """
@@ -97,8 +99,8 @@ class User(Faker, WeightedRandom):
         Build dictionary with user attributes
         """
         return dict(
-            user_custom_id=self.ascii_free_email(),
-            user_domain_id=str(self.uuid4())
+            user_custom_id=self.email,
+            user_domain_id=self.user_id
         )
 
     def referer(self) -> dict:

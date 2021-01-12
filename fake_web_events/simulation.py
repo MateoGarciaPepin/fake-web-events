@@ -93,7 +93,7 @@ class Simulation():
         n_users += choices([1, 0], cum_weights=[(self.rate % 1), 1])[0]
         for n in range(n_users):
             self.cur_sessions.append(Event(self.cur_time,
-                                           self.user_pool.get_user().asdict(),
+                                           self.user_pool.get_user(),
                                            self.batch_size)
                                      )
 
