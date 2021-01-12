@@ -115,5 +115,4 @@ class Simulation():
             self.create_sessions()
             self.wait()
             for session in self.cur_sessions:
-                if session.is_new_page:
-                    yield session.asdict()
+                yield session.asdict()

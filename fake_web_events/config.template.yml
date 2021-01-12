@@ -55,6 +55,38 @@ events:
         drp_order:
           type: 'int'
           values: [1, 4]
+  product_a:
+    click_product_b:
+      prob: 0.3
+      properties:
+    dropdown_select:
+        prob: 0.7
+        properties:
+          drp_option:
+            type: 'string'
+            values: [ 'text1', 'text2', 'text3', 'text4' ]
+          drp_order:
+            type: 'int'
+            values: [ 1, 4 ]
+          drp_price:
+            type: 'float'
+            values: [ 30.3, 70.5 ]
+  product_b:
+    click_product_a:
+      prob: 0.3
+      properties:
+    dropdown_select:
+        prob: 0.7
+        properties:
+          drp_option:
+            type: 'string'
+            values: [ 'text1', 'text2', 'text3', 'text4' ]
+          drp_order:
+            type: 'int'
+            values: [ 1, 4 ]
+          drp_price:
+            type: 'float'
+            values: [30.3, 70.5]
 
 
 visits_per_hour:
