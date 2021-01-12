@@ -4,6 +4,8 @@ from fake_web_events.user import User
 import json
 import random
 from datetime import timedelta, datetime
+from  dateutil import parser
+import math
 
 
 class Event(Faker, WeightedRandom):
@@ -37,25 +39,91 @@ class Event(Faker, WeightedRandom):
 
         return self.current_page
 
-    def pageview(self) -> dict:
+    def create_properties(self, properties: dict) -> dict:
+        props = dict()
+        try:
+            for prop, value in properties.items():
+                if value['type'] == 'string':
+                    props[prop] = self.random_choices(value['values'],1)[0]
+                elif value['type'] == 'boolean':
+                    props[prop] == self.boolean()
+                elif value['type'] == 'int':
+                    min_ = value['values'][0]
+                    max_ = value['values'][-1]
+                    props[prop] = self.random_int(min=min_, max=max_)
+                elif value['type'] == 'float':
+                    min_ = value['values'][0]
+                    max_ = value['values'][-1]
+                    min_int = math.floor(min_)
+                    max_int = math.ceil(max_)
+                    float_ = min_int - 1
+                    while float_ < min_ or float_ > max_:
+                        float_ = self.pyfloat(min_value = min_int, max_value = max_int)
+                    props[prop] = float_
+                elif value['type'] in ['date', 'datetime']:
+                    max_ = parser.parse(value['values'][-1])
+                    min_ = parser.parse(value['values'][0]) if len(value['values']) > 1 else None
+                    datetime_ = self.date_time_between_dates(min_, max_)
+                    if value['type'] == 'date':
+                        datetime_ = datetime_.date()
+                    props[prop] = datetime_
+                elif value['type'] == 'email':
+                    props[prop] = self.ascii_free_email()
+                elif value['type'] in ['phone', 'phone_number']:
+                    props[prop] = self.phone_number()
+                elif value['type'] == 'address':
+                    props[prop] = self.address()
+                elif value['type'] == 'geolocation':
+                    if value['values'] is not None:
+                        props[prop] = self.local_latlng(country_code=value['values'])
+                    else:
+                        props[prop] = self.local_latlng(country_code='US')
+                else:
+                    pass
+        except:
+            raise Exception('Property paramaters not correctly configured')
+
+        return props
+
+    def generate_event(self, event_type:str, properties:dict ) -> dict:
         """
         Return the event information as a dictionary
         """
-        return {
-            'event_id': self.uuid4(),
-            'event_timestamp': self.current_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'),
-            'event_type': 'pageview',
-            'page_url': f'http://www.dummywebsite.com/{self.current_page}',
-            'page_url_path': f'/{self.current_page}',
-        }
+        if event_type == 'pageview':
+            return {
+                'event_id': self.uuid4(),
+                'event_timestamp': self.current_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'),
+                'event_type': event_type,
+                'page_url': f'http://www.dummywebsite.com/{self.current_page}',
+                'page_url_path': f'/{self.current_page}',
+                'properties': {
+                    **self.user.referer(),
+                    **self.user.utm(),
+                }
+            }
+        else:
+            return {
+                'event_id': self.uuid4(),
+                'event_timestamp': self.current_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'),
+                'event_type': event_type,
+                'page_url': f'http://www.dummywebsite.com/{self.current_page}',
+                'page_url_path': f'/{self.current_page}',
+                'properties': self.create_properties(properties)
+            }
+
 
     def asdict(self) -> dict:
         """
         Return the event + user as a dictionary
         """
         return {
-            **self.pageview(),
-            **self.user
+            **self.generate_event(),
+            **self.user.geo(),
+            **self.user.ip(),
+            **self.user.browser(),
+            **self.user.operating_system(),
+            **self.user.device(),
+            **self.user.user()
         }
 
     def is_active(self) -> bool:

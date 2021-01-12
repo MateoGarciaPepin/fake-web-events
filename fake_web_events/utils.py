@@ -12,13 +12,17 @@ def _get_abs_path(path: str) -> str:
     return os.path.join(__location__, path)
 
 
-def load_config() -> dict:
+def load_config(config_path: str = None) -> dict:
     """
     Load config file. If not found, then load the template
     """
     try:
-        with open(os.path.join(sys.path[0], 'config.yml'), 'r') as f:
-            return yaml.safe_load(f)
+        if config_path is None:
+            with open(os.path.join(sys.path[0], 'config.yml'), 'r') as f:
+                return yaml.safe_load(f)
+        else:
+            with open(config_path, 'r') as f:
+                return yaml.safe_load(f)
     except FileNotFoundError:
         logging.info('config.yml not found, loading default template.')
         with open(_get_abs_path('config.template.yml'), 'r') as f:

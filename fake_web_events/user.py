@@ -158,10 +158,10 @@ class UserPool:
         for idx in range(1, self.size + 1):
             if idx % 100 == 0:
                 logging.info(f'{idx} users created.')
-            self.pool.append(User().asdict())
+            self.pool.append(User())
 
     def __repr__(self) -> str:
-        return repr(self.pool)
+        return repr([u.asdict() for u in self.pool])
 
     def get_user(self) -> User:
         """

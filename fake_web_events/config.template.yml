@@ -50,10 +50,10 @@ events:
       prob: 0.2
       properties:
         drp_option:
-          type: string
+          type: 'string'
           values: ['text1', 'text2', 'text3', 'text4']
         drp_order:
-          type: int
+          type: 'int'
           values: [1, 4]
 
 

@@ -8,18 +8,19 @@ from time import time
 from typing import Generator
 
 
-class Simulation:
+class Simulation():
     """
     Keep track of the simulation state
     """
-    config = load_config()
 
     def __init__(
             self,
             user_pool_size: int,
             sessions_per_day: int = 10000,
             batch_size: int = 10,
-            init_time: datetime = datetime.now()):
+            init_time: datetime = datetime.now(),
+            config_path: str = None
+            ):
 
         self.user_pool = UserPool(size=user_pool_size)
         self.cur_sessions = []
@@ -29,6 +30,7 @@ class Simulation:
         self.sessions_per_day = sessions_per_day
         self.qty_events = 0
         self.rate = self.get_rate_per_step()
+        self.config = load_config(config_path)
 
     def __str__(self) -> str:
         """
@@ -90,7 +92,10 @@ class Simulation:
         n_users = int(self.rate)
         n_users += choices([1, 0], cum_weights=[(self.rate % 1), 1])[0]
         for n in range(n_users):
-            self.cur_sessions.append(Event(self.cur_time, self.user_pool.get_user(), self.batch_size))
+            self.cur_sessions.append(Event(self.cur_time,
+                                           self.user_pool.get_user().asdict(),
+                                           self.batch_size)
+                                     )
 
         return self.cur_sessions
 
