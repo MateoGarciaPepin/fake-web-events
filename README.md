@@ -10,37 +10,36 @@ This package generates semi-random web events for your prototypes, so that when 
 out of the event stream, they are not completely random. This is a typical fake event generated with this package:
 
 ```json
-{
-  "event_timestamp": "2020-07-05 14:32:45.407110",
-  "event_type": "pageview",
-  "page_url": "http://www.dummywebsite.com/home",
-  "page_url_path": "/home",
-  "referer_url": "www.instagram.com",
-  "referer_url_scheme": "http",
-  "referer_url_port": "80",
-  "referer_medium": "internal",
-  "utm_medium": "organic",
-  "utm_source": "instagram",
-  "utm_content": "ad_2",
-  "utm_campaign": "campaign_2",
-  "click_id": "b6b1a8ad-88ca-4fc7-b269-6c9efbbdad55",
-  "geo_latitude": "41.75338",
-  "geo_longitude": "-86.11084",
-  "geo_country": "US",
-  "geo_timezone": "America/Indiana/Indianapolis",
-  "geo_region_name": "Granger",
-  "ip_address": "209.139.207.244",
-  "browser_name": "Firefox",
-  "browser_user_agent": "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10_5_5; rv:1.9.6.20) Gecko/2012-06-06 09:24:19 Firefox/3.6.20",
-  "browser_language": "tn_ZA",
-  "os": "Android 2.0.1",
-  "os_name": "Android",
-  "os_timezone": "America/Indiana/Indianapolis",
-  "device_type": "Mobile",
-  "device_is_mobile": true,
-  "user_custom_id": "vsnyder@hotmail.com",
-  "user_domain_id": "3d648067-9088-4d7e-ad32-45d009e8246a"
-}
+{'event_id': '94e5d9ba-c455-4cac-9b0b-7448cfe80f59',
+ 'event_timestamp': '2020-01-01 23:05:21.808884',
+ 'event_type': 'pageview',
+ 'page_url': 'http://www.dummywebsite.com/home',
+ 'page_url_path': '/home',
+ 'properties': {'referer_url': 'www.bing.com',
+  'referer_url_scheme': 'http',
+  'referer_url_port': '80',
+  'referer_medium': 'search',
+  'utm_medium': 'cpc',
+  'utm_source': 'bing',
+  'utm_content': 'ad_4',
+  'utm_campaign': 'campaign_1',
+  'click_id': 'ca4a4122-a7e4-4bee-bc81-981c93285950'},
+ 'geo_latitude': '44.98901',
+ 'geo_longitude': '38.94324',
+ 'geo_country': 'RU',
+ 'geo_timezone': 'Europe/Moscow',
+ 'geo_region_name': 'Yablonovskiy',
+ 'ip_address': '143.94.155.161',
+ 'browser_name': 'Chrome',
+ 'browser_user_agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/531.1 (KHTML, like Gecko) Chrome/43.0.804.0 Safari/531.1',
+ 'browser_language': 'en_DK',
+ 'os': 'iPad; CPU iPad OS 10_3_4 like Mac OS X',
+ 'os_name': 'iOS',
+ 'os_timezone': 'Europe/Moscow',
+ 'device_type': 'Mobile',
+ 'device_is_mobile': True,
+ 'user_custom_id': 'adrianlewis@gmail.com',
+ 'user_domain_id': '1805eef8-f941-4d60-874e-93aff71dbe4b'}
 ```
 
 ## Installation
@@ -52,8 +51,8 @@ It is easy to run a simulation as well:
 from fake_web_events import Simulation
 
 
-simulation = Simulation(user_pool_size=100, sessions_per_day=100000)
-events = simulation.run(duration_seconds=60)
+simulation = Simulation(user_pool_size = 100, sessions_per_day = 100000)
+events = simulation.run(duration_seconds = 60)
 
 for event in events:
     print(event)
@@ -85,6 +84,24 @@ home:
 This means that at the next iteration there are 45% chance user stays at home page, 
 17% chance user goes to product_a page and so on.
 
+### Custom Events
+Whenever a user lands in the same page, there is no new `pageview` event created; but additionally you can configure custom events to happen, such as clicks, opens, select, add_information etc. Custom events are also set in the config file under the `events` section; there is also possible to set a particular page with no events.
+Events are set by page; each event has a name, a prereq (if said event happens after another particular event), a probability and a configurable properties field which can contain multiple properties of diferent types.
+
+```yaml
+home:
+  dropdown_select:
+    prereq: 'dropdown_click'
+    prob: 0.3
+    properties:
+      drp_option:
+        type: 'string'
+        values: ['text1', 'text2', 'text3', 'text4']
+      drp_order:
+        type: 'int'
+        values: [1, 4]
+```
+
 ### Website Map
 We designed a really simple website map to allow user browsing.
 ![website_map](assets/website_map.svg)
@@ -99,7 +116,7 @@ You can fin how the probabilities for each page are defined in the
 To generate fake user information, such as IP and email addresses we are using the module [Faker](https://github.com/joke2k/faker).
 
 ### User Pool
-We create a user pool from where users are randomly chosen (with replacement). This enables users to have different sessions over time.
+We create a user pool from where users are randomly chosen. This enables users to have different sessions over time.
 
 ### Simulation
 When you run a simulation, it will pick an user and iterate until that user reaches session_end. 
@@ -109,14 +126,29 @@ each iteration will add 10 seconds to the timer (with some randomness).
 For each iteration an event is generated for each user when the current page is different from the previous page.
 
 ### Simulate events
-When calling `simulate_events()` you have to define a duration in seconds. Please note that this duration is in "real time", 
+When calling `simulation.run()` you have to define a duration in seconds. Please note that this duration is in "real time", 
 and that time inside the simulation will usually run faster than real time.
 
 This will return a generator, so you need to iterate over it and decide what to do to each event inside the loop.
 
+#### Simulate events over a extended period of time
+Given that the simulation is in "real time", sometimes you want to simulate a longer period of time than a couple of seconds, for example a year or so.
+To do so please specify the period of time in days when setting the simulation
+
+```python
+simulation = Simulation(user_pool_size = 100, sessions_per_day = 100000, sim_days = 360)
+```
+This will simulate different sessions for the user across the period of time, but still following the duration in seconds of the run (meaning the run will simulate events during 10 seconds if specified but across the period of time)
+
 ## Advanced
 If you want to customize the probabilities, you can create a file called `config.yml` in the same 
 directory where you are running the script. This file will take precedence over [config.template.yml](fake_web_events/config.template.yml).
+
+Additionally you can specify the configuraion path when setting the simulation 
+
+```python
+simulation = Simulation(user_pool_size = 100, sessions_per_day = 100000, config_path = path)
+```
 
 # Examples
 In the folder [examples](examples) you are going to find some use cases and examples on how to use this package.
