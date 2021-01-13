@@ -20,7 +20,7 @@ class Event(Faker, WeightedRandom):
         WeightedRandom.__init__(self, config_path=config_path)
         self.previous_page = None
         self.current_page = self.select('landing_pages')
-        self.custom_event = 'pageview'
+        self.custom_event = None
         self.event_properties = {}
         self.user = user
         self.batch_size = batch_size
@@ -49,12 +49,12 @@ class Event(Faker, WeightedRandom):
         """
         Calculate which one should be the next page
         """
-        events, weights, properties = self.get_events(self.current_page)
+        events, weights, properties = self.get_events(self.current_page, self.custom_event)
         if len(events) > 0:
             self.custom_event = random.choices(events, weights=weights)[0]
             self.event_properties = properties[self.custom_event]
         else:
-            self.custom_event = 'pageview'
+            self.custom_event = None
             self.event_properties = {}
         return self.custom_event, self.event_properties
 
@@ -65,7 +65,7 @@ class Event(Faker, WeightedRandom):
         else:
             try:
                 for prop, value in properties.items():
-                    if value['type'] == 'string':
+                    if value['type'] in ('string', 'str'):
                         props[prop] = self.random_choices(value['values'], 1)[0]
                     elif value['type'] == 'boolean':
                         props[prop] == self.boolean()
@@ -111,11 +111,11 @@ class Event(Faker, WeightedRandom):
         """
         Return the event information as a dictionary
         """
-        if self.custom_event == 'pageview':
+        if self.custom_event is None: #pageview
             return {
                 'event_id': self.uuid4(),
                 'event_timestamp': self.current_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'),
-                'event_type': self.custom_event,
+                'event_type': 'pageview',
                 'page_url': f'http://www.dummywebsite.com/{self.current_page}',
                 'page_url_path': f'/{self.current_page}',
                 'properties': {
@@ -163,7 +163,7 @@ class Event(Faker, WeightedRandom):
             self.get_next_page()
             self.is_new_page = self.current_page != self.previous_page
             if self.is_new_page:
-                self.custom_event = 'pageview'
+                self.custom_event = None
                 self.event_properties = {}
             else:
                 self.get_custom_event()
