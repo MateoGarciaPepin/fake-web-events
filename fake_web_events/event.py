@@ -13,8 +13,11 @@ class Event(Faker, WeightedRandom):
     Creates events and keeps tracks of sessions
     """
 
-    def __init__(self, current_timestamp: datetime, user: User, batch_size: int, always_forward: bool):
+    def __init__(self, current_timestamp: datetime, user: User, batch_size: int, always_forward: bool,
+                 config_path: str = None
+                 ):
         super().__init__(['en_US'])
+        WeightedRandom.__init__(self, config_path=config_path)
         self.previous_page = None
         self.current_page = self.select('landing_pages')
         self.custom_event = 'pageview'

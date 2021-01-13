@@ -33,7 +33,8 @@ def load_config(config_path: str = None) -> dict:
 
 class WeightedRandom:
 
-    config = load_config()
+    def __init__(self, config_path):
+        self.config = load_config(config_path)
 
     def select(self, property_name: str) -> str:
         """

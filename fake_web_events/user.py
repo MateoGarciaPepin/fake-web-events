@@ -10,8 +10,9 @@ class User(Faker, WeightedRandom):
     Class that will create fake event attributes associated to a user
     """
 
-    def __init__(self):
+    def __init__(self, config_path: str = None):
         super().__init__(['en_US'])
+        WeightedRandom.__init__(self, config_path = config_path)
         self.lat, self.lng, self.region, self.country, self.timezone = self.location_on_land()
         self.os_name = self.select('operating_systems')
         self.browser_name = self.select('browsers')
@@ -150,9 +151,10 @@ class User(Faker, WeightedRandom):
 
 class UserPool:
 
-    def __init__(self, size: int):
+    def __init__(self, size: int, config_path: str = None):
         self.size = size
         self.pool = []
+        self.config_path = config_path
         self.populate_pool()
 
     def populate_pool(self):
@@ -160,7 +162,7 @@ class UserPool:
         for idx in range(1, self.size + 1):
             if idx % 100 == 0:
                 logging.info(f'{idx} users created.')
-            self.pool.append(User())
+            self.pool.append(User(self.config_path))
 
     def __repr__(self) -> str:
         return repr([u.asdict() for u in self.pool])
