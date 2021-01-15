@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from random import randrange, choices, random
+from random import randrange, choices, random, expovariate, triangular
 from fake_web_events.event import Event
 from fake_web_events.user import UserPool
 from fake_web_events.utils import load_config
@@ -20,6 +20,7 @@ class Simulation():
             batch_size: int = 10,
             init_time: datetime = datetime.now(),
             sim_days = 1,
+            growth = None,
             config_path: str = None,
             always_forward = True
             ):
@@ -32,6 +33,7 @@ class Simulation():
         self.cur_time = init_time
         assert sim_days > 0, "Simulation lenght cannot be negative"
         self.stop_time = init_time + timedelta(days=sim_days)
+        self.growth = growth
         self.batch_size = batch_size
         self.sessions_per_day = sessions_per_day
         self.qty_events = 0
@@ -97,7 +99,13 @@ class Simulation():
         """
         Randomize timestamps so not all sessions come with the same current time
         """
-        ratio = random()
+        if self.growth in ['lineal','lin', 'linear']: # linear distribution
+            ratio = 1 - triangular(0, 1, 0)
+        elif self.growth in ['exp','exponential']: # exponential growth
+            ratio = expovariate(1/1.5)
+            ratio = (8 - ratio)/8 if ratio < 8 else 1
+        else:
+            ratio = random()
         return self.init_time + ratio * (self.stop_time - self.init_time)
 
     def create_sessions(self) -> list:
