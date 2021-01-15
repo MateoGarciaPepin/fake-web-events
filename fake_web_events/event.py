@@ -14,10 +14,10 @@ class Event(Faker, WeightedRandom):
     """
 
     def __init__(self, current_timestamp: datetime, user: User, batch_size: int, always_forward: bool,
-                 config_path: str = None
+                 config: dict = None
                  ):
         super().__init__(['en_US'])
-        WeightedRandom.__init__(self, config_path=config_path)
+        WeightedRandom.__init__(self, config=config)
         self.previous_page = None
         self.current_page = self.select('landing_pages')
         self.custom_event = None

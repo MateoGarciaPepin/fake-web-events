@@ -26,8 +26,8 @@ class Simulation():
             ):
 
         self.config = load_config(config_path)
-        self.config_path = config_path
-        self.user_pool = UserPool(size=user_pool_size, config_path= self.config_path)
+        # self.config_path = config_path
+        self.user_pool = UserPool(size=user_pool_size, config= self.config)
         self.cur_sessions = []
         self.init_time = init_time
         self.cur_time = init_time
@@ -119,7 +119,7 @@ class Simulation():
                                            self.user_pool.get_user(),
                                            self.batch_size,
                                            self.always_forward,
-                                           self.config_path
+                                           self.config
                                            )
                                      )
 
