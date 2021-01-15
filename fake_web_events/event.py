@@ -67,8 +67,8 @@ class Event(Faker, WeightedRandom):
                 for prop, value in properties.items():
                     if value['type'] in ('string', 'str'):
                         props[prop] = self.random_choices(value['values'], 1)[0]
-                    elif value['type'] == 'boolean':
-                        props[prop] == self.boolean()
+                    elif value['type'] in ('boolean', 'bool'):
+                        props[prop] = self.boolean()
                     elif value['type'] == 'int':
                         min_ = value['values'][0]
                         max_ = value['values'][-1]
@@ -96,7 +96,7 @@ class Event(Faker, WeightedRandom):
                     elif value['type'] == 'address':
                         props[prop] = self.address()
                     elif value['type'] == 'geolocation':
-                        if value['values'] is not None:
+                        if 'values' in value.keys() and value['values'] is not None:
                             props[prop] = self.local_latlng(country_code=value['values'])
                         else:
                             props[prop] = self.local_latlng(country_code='US')
