@@ -90,8 +90,8 @@ class Simulation():
         """
         Wait for given amount of time defined in batch size
         """
-        min_range = 0 if always_forward else -self.batch_size * 0.3
-        max_range = self.batch_size * 0.3
+        min_range = 0 if always_forward else - int(self.batch_size * 0.3)
+        max_range = int(self.batch_size * 0.3)
         self.cur_time += timedelta(seconds=self.batch_size + randrange(min_range, max_range))
         self.rate = self.get_rate_per_step()
 
@@ -144,4 +144,8 @@ class Simulation():
                 if session.is_new_page:
                     yield session.asdict()
                 elif not session.is_new_page and session.custom_event != 'pageview':
-                    yield session.asdict()
+                    if session.modal_event != session.custom_event:
+                        yield session.asdict()
+                    else:
+                        if not (session.modal ^ session.yield_modal):
+                            yield session.asdict()

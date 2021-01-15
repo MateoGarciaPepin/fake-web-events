@@ -1,42 +1,53 @@
 pages:
   home:
-     home: 0.45
-     product_a: 0.22
-     product_b: 0.18
-     session_end: 0.15
+    pages:
+      home: 0.45
+      product_a: 0.22
+      product_b: 0.18
+      session_end: 0.15
+    max_decay_cycles: 3
 
   product_a:
-     product_a: 0.6
-     home: 0.18
-     cart: 0.12
-     session_end: 0.1
+    pages:
+      product_a: 0.6
+      home: 0.18
+      cart: 0.12
+      session_end: 0.1
+    max_decay_cycles: 5
 
   product_b:
-     product_b: 0.4
-     home: 0.22
-     cart: 0.14
-     session_end: 0.24
-
+    pages:
+      product_b: 0.4
+      home: 0.22
+      cart: 0.14
+      session_end: 0.24
+    max_decay_cycles: 5
   cart:
-     cart: 0.3
-     payment: 0.55
-     home: 0.1
-     session_end: 0.05
+    pages:
+      cart: 0.3
+      payment: 0.55
+      home: 0.1
+      session_end: 0.05
+    max_decay_cycles: 2
 
   payment:
-     payment: 0.4
-     confirmation: 0.45
-     cart: 0.1
-     session_end: 0.05
+    pages:
+      payment: 0.4
+      confirmation: 0.45
+      cart: 0.1
+      session_end: 0.05
+    max_decay_cycles: 2
 
   confirmation:
-     confirmation: 0.6
-     session_end: 0.4
+    pages:
+      confirmation: 0.6
+      session_end: 0.4
+    max_decay_cycles: 1
 
 landing_pages:
-  home: 0.6
-  product_a: 0.25
-  product_b: 0.15
+  home: 0
+  product_a: 1
+  product_b: 0
 
 events:
   home:
@@ -44,6 +55,30 @@ events:
       prereq:
       prob: 0.5
       properties:
+        bool_prop:
+          type: 'bool'
+          values:
+        email_prop:
+          type: 'email'
+          values:
+        addr_prop:
+          type: 'address'
+          values:
+        float_prop:
+          type: 'float'
+          values: [1.5, 10.5]
+        date_prop:
+          type: 'date'
+          values: ['2020-01-01', '2020-02-01']
+        datetime_prop:
+          type: 'datetime'
+          values: [ '2020-01-01 5:00', '2020-02-01 00:00' ]
+        phone_prop:
+          type: 'phone'
+          values:
+        geo_prop:
+          type: 'geolocation'
+          values: 'US'
 
     click_product_b:
       prereq:
@@ -94,6 +129,7 @@ events:
         price:
           type: 'float'
           values: [ 10, 30 ]
+      modal: True
 
     remove_from_cart:
       prereq: 'add_to_cart'

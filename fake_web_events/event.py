@@ -7,6 +7,8 @@ from datetime import timedelta, datetime
 from dateutil import parser
 import math
 
+from typing import Tuple
+
 
 class Event(Faker, WeightedRandom):
     """
@@ -26,6 +28,10 @@ class Event(Faker, WeightedRandom):
         self.batch_size = batch_size
         self.current_timestamp = self.randomize_timestamp(current_timestamp, always_forward)
         self.is_new_page = True
+        self.curr_cycle = 1
+        self.modal = False
+        self.modal_event = None
+        self.yield_modal = False
 
     def randomize_timestamp(self, timestamp: datetime, always_forward: bool) -> datetime:
         """
@@ -40,22 +46,48 @@ class Event(Faker, WeightedRandom):
         """
         Calculate which one should be the next page
         """
-        pages, weights = self.get_pages(self.current_page)
+        pages, weights = self.get_pages(self.current_page, self.curr_cycle)
         self.current_page = random.choices(pages, weights=weights)[0]
 
         return self.current_page
 
-    def get_custom_event(self) -> str:
+    def update_modal(self, modal, check_current = True):
+        if check_current:
+            self.modal = modal[self.custom_event] if not self.modal else self.modal
+        else:
+            self.modal = modal[self.custom_event]
+        self.yield_modal = True if self.modal and self.modal_event is None else False
+        self.modal_event = self.custom_event if self.modal_event is None and self.modal else self.modal_event
+
+    def get_custom_event(self) -> Tuple[str, dict]:
         """
-        Calculate which one should be the next page
+        Calculate which one should be the next custom event
         """
-        events, weights, properties = self.get_events(self.current_page, self.custom_event)
-        if len(events) > 0:
+
+        events, weights, modal, properties, events_prereq = self.get_events(self.current_page, self.custom_event)
+
+        if len(events) > 0: # events in the page (already take into account last event on prereq)
             self.custom_event = random.choices(events, weights=weights)[0]
             self.event_properties = properties[self.custom_event]
-        else:
+            if events_prereq:
+                self.update_modal(modal)
+            else:
+                if self.modal:
+                    modal_rand = random.random()
+                    if modal_rand < 0.4:  # go to modal
+                        self.custom_event = self.modal_event
+                        self.yield_modal = False
+                    else:  # go to page events
+                        self.modal_event = None
+                        self.update_modal(modal, check_current = False)
+
+                else:
+                    self.update_modal(modal)
+
+        else: # not events for page
             self.custom_event = None
             self.event_properties = {}
+
         return self.custom_event, self.event_properties
 
     def create_properties(self, properties: dict) -> dict:
@@ -165,8 +197,10 @@ class Event(Faker, WeightedRandom):
             if self.is_new_page:
                 self.custom_event = None
                 self.event_properties = {}
+                self.curr_cycle = 1
             else:
                 self.get_custom_event()
+                self.curr_cycle += 1
 
             return self.is_new_page, self.custom_event
 
