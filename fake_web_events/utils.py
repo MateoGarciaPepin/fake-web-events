@@ -20,7 +20,7 @@ def load_config(config_path: str = None) -> dict:
         if config_path is None:
             with open(os.path.join(sys.path[0], 'config.yml'), 'r') as f:
                 return yaml.safe_load(f)
-        else:
+        else: # load custom path config file
             with open(config_path, 'r') as f:
                 return yaml.safe_load(f)
     except FileNotFoundError:
@@ -54,9 +54,14 @@ class WeightedRandom:
         Returns list of pages and weights from config
         """
         dict_ = self.config['pages'].get(page)
+        # cycle is used to modify probabilities depending how much time the user has spent
+        # in the page (time measured in cycles = events generated)
+        # max_cyle = 0 applies directly original probabilities
         max_cycle = dict_['max_decay_cycles']
-        if curr_cycle  <= max_cycle:
+        if curr_cycle <= max_cycle != 0:
+            # modify probabilities of other pages
             pages_info = { k: v * curr_cycle/max_cycle for k, v in dict_.get('pages').items() if k != page}
+            # complement probability of current page
             pages_info[page] = 1 - sum([x for x in pages_info.values()])
         else:
             pages_info = dict_.get('pages')
@@ -67,19 +72,29 @@ class WeightedRandom:
 
     def get_events(self, page: str, prereq: str = None) -> Tuple[List[str], List[float], dict, dict, bool]:
         """
-        Returns list of pages and weights from config
+        Returns list of events, weights, dictionaries with modal, properties information and if there are events with current prereq
         """
         events_dict = self.config['events'].get(page)
+
         if events_dict is not None:
+            # there are events for current page
             events = [event for event in events_dict.keys() if events_dict.get(event).get('prereq') == prereq]
+
             if len(events) == 0:
+                # There are no events which have current prereq as prerequisite, get all non-prereq events for page
                 events_prereq = False
                 events = [event for event in events_dict.keys() if events_dict.get(event).get('prereq') is None]
-            else: events_prereq = True
+            else:
+                events_prereq = True
+
             weights = [events_dict.get(event).get('prob') for event in events]
-            modal = {event: events_dict.get(event).get('modal') for event in events}
-            modal = {k:(False if v is None else v) for k,v in modal.items()}
             properties = {event: events_dict.get(event).get('properties') for event in events}
+            # bool dictionary either if the event is modal or not
+            modal = {event: events_dict.get(event).get('modal') for event in events}
+            modal = {k: (False if v is None else v) for k, v in modal.items()}
+
             return events, weights, modal, properties, events_prereq
-        else: return [], [], [], {}, False
+        else:
+            # If no events return all empty
+            return [], [], {}, {}, False
 

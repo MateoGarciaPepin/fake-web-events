@@ -30,14 +30,16 @@ class Simulation():
         self.user_pool = UserPool(size=user_pool_size, config= self.config)
         self.cur_sessions = []
         self.init_time = init_time
+        # time attributes
         self.cur_time = init_time
         assert sim_days > 0, "Simulation lenght cannot be negative"
         self.stop_time = init_time + timedelta(days=sim_days)
-        self.growth = growth
         self.batch_size = batch_size
         self.sessions_per_day = sessions_per_day
         self.qty_events = 0
         self.rate = self.get_rate_per_step()
+
+        self.growth = growth
         self.always_forward = always_forward
 
     def __str__(self) -> str:
@@ -99,6 +101,8 @@ class Simulation():
         """
         Randomize timestamps so not all sessions come with the same current time
         """
+        # Apply random growth according to specification
+        # TODO allow more customization of growth parameters
         if self.growth in ['lineal','lin', 'linear']: # linear distribution
             ratio = 1 - triangular(0, 1, 0)
         elif self.growth in ['exp','exponential']: # exponential growth
@@ -106,6 +110,8 @@ class Simulation():
             ratio = (8 - ratio)/8 if ratio < 8 else 1
         else:
             ratio = random()
+
+        # randomize session timestamp
         return self.init_time + ratio * (self.stop_time - self.init_time)
 
     def create_sessions(self) -> list:
@@ -142,10 +148,15 @@ class Simulation():
             self.wait(self.always_forward)
             for session in self.cur_sessions:
                 if session.is_new_page:
+                    # new pageview event
                     yield session.asdict()
                 elif not session.is_new_page and session.custom_event != 'pageview':
+                    # custome events
                     if session.modal_event != session.custom_event:
+                        # any custom event that is not the current modal
                         yield session.asdict()
                     else:
+                        # modal custom event (only when yield_modal)
+                        # ^ indicates function XOR
                         if not (session.modal ^ session.yield_modal):
                             yield session.asdict()

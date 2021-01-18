@@ -28,7 +28,7 @@ pages:
       payment: 0.55
       home: 0.1
       session_end: 0.05
-    max_decay_cycles: 2
+    max_decay_cycles: 0
 
   payment:
     pages:
