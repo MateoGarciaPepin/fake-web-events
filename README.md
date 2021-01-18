@@ -142,6 +142,15 @@ simulation = Simulation(user_pool_size = 100, sessions_per_day = 100000, sim_day
 ```
 This will simulate different sessions for the user across the period of time, but still following the duration in seconds of the run (meaning the run will simulate events during 10 seconds if specified but across the period of time)
 
+#### Simulate growth
+
+If you want to customize the simulation over a extended periof of time, you can specify what kind of growth do you want over said period of time. Please notice right now the growth starts at 0 in `init_time`.
+Available options are 'linear' or 'exponential'
+
+```python
+simulation = Simulation(user_pool_size = 100, sessions_per_day = 100000, sim_days = 360, growth='linear')
+```
+
 ## Advanced
 If you want to customize the probabilities, you can create a file called `config.yml` in the same 
 directory where you are running the script. This file will take precedence over [config.template.yml](fake_web_events/config.template.yml).
@@ -150,6 +159,36 @@ Additionally you can specify the configuraion path when setting the simulation
 
 ```python
 simulation = Simulation(user_pool_size = 100, sessions_per_day = 100000, config_path = path)
+```
+### Modal
+Modal windows, overlays, or pop-up messages are a type of in-app messaging. They are large UI elements that sit on top of an application's main window; usually they share the same screen name of the application screen. 
+Large modals usually have more than 1 associated event. To account for that you can specify if an event is associated with opening a modal (all the events inside said modal will have as prerequisite this event). Without this option only one event will be generated every time a modal opening is simulated. With this option there is a 50% chance (fixed) that a second, third, etc. event will be triggered. To specify a modal see the following example configuration:
+
+```yaml
+add_to_cart:
+  prereq:
+  prob: 0.3
+  properties:
+    qty:
+      type: 'int'
+      values: [ 1, 10]
+    price:
+      type: 'float'
+      values: [ 10, 30 ]
+  modal: True
+
+remove_from_cart:
+  prereq: 'add_to_cart'
+  prob: 0.3
+  properties:
+    time_passed_sec:
+      type: 'float'
+      values: [0, 10]
+
+go_to_cart:
+  prereq: 'add_to_cart'
+  prob: 0.7
+  properties:
 ```
 
 # Examples
