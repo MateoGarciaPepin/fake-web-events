@@ -178,7 +178,7 @@ class Event(Faker, WeightedRandom):
         if self.custom_event is None:  # pageview
             return {
                 'event_id': self.uuid4(),
-                'event_timestamp': self.current_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'),
+                'event_timestamp': self.current_timestamp, #.strftime('%Y-%m-%d %H:%M:%S.%f'),
                 'event_type': 'pageview',
                 'page_url': f'http://www.dummywebsite.com/{self.current_page}',
                 'page_url_path': f'/{self.current_page}',
@@ -190,7 +190,7 @@ class Event(Faker, WeightedRandom):
         else:
             return {
                 'event_id': self.uuid4(),
-                'event_timestamp': self.current_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'),
+                'event_timestamp': self.current_timestamp, #.strftime('%Y-%m-%d %H:%M:%S.%f'),
                 'event_type': self.custom_event,
                 'page_url': f'http://www.dummywebsite.com/{self.current_page}',
                 'page_url_path': f'/{self.current_page}',

@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from random import randrange, choices, random, expovariate, triangular
 from fake_web_events.event import Event
 from fake_web_events.user import UserPool
 from fake_web_events.utils import load_config
 from time import time
+import json
 
 from typing import Generator
 
@@ -19,15 +20,16 @@ class Simulation():
             sessions_per_day: int = 10000,
             batch_size: int = 10,
             init_time: datetime = datetime.now(),
-            sim_days = 1,
-            growth = None,
+            sim_days=1,
+            growth=None,
             config_path: str = None,
-            always_forward = True
-            ):
+            always_forward=True,
+            yield_as_json=False
+    ):
 
         self.config = load_config(config_path)
         # self.config_path = config_path
-        self.user_pool = UserPool(size=user_pool_size, config= self.config)
+        self.user_pool = UserPool(size=user_pool_size, config=self.config)
         self.cur_sessions = []
         self.init_time = init_time
         # time attributes
@@ -41,6 +43,8 @@ class Simulation():
 
         self.growth = growth
         self.always_forward = always_forward
+
+        self.yield_as_json = yield_as_json
 
     def __str__(self) -> str:
         """
@@ -70,7 +74,7 @@ class Simulation():
         """
         duration_td = self.get_curr_duration()
         days = duration_td.days
-        hours = duration_td.seconds//3600
+        hours = duration_td.seconds // 3600
         minutes = (duration_td.seconds // 60) % 60
         seconds = duration_td.seconds % 60
         return f'{days} days, {hours} hours, {minutes} minutes, {seconds} seconds'
@@ -103,11 +107,11 @@ class Simulation():
         """
         # Apply random growth according to specification
         # TODO allow more customization of growth parameters
-        if self.growth in ['lineal','lin', 'linear']: # linear distribution
+        if self.growth in ['lineal', 'lin', 'linear']:  # linear distribution
             ratio = 1 - triangular(0, 1, 0)
-        elif self.growth in ['exp','exponential']: # exponential growth
-            ratio = expovariate(1/1.5)
-            ratio = (8 - ratio)/8 if ratio < 8 else 1
+        elif self.growth in ['exp', 'exponential']:  # exponential growth
+            ratio = expovariate(1 / 1.5)
+            ratio = (8 - ratio) / 8 if ratio < 8 else 1
         else:
             ratio = random()
 
@@ -137,6 +141,12 @@ class Simulation():
             if not session.is_active():
                 self.cur_sessions.remove(session)
 
+    def yield_event(self, session):
+        if self.yield_as_json:
+            return json.dumps(session.asdict(), default=json_serial)
+        else:
+            return session.asdict()
+
     def run(self, duration_seconds: int) -> Generator[dict, None, None]:
         """
         Function to run a simulation for the given duration in seconds. Yields events.
@@ -149,14 +159,22 @@ class Simulation():
             for session in self.cur_sessions:
                 if session.is_new_page:
                     # new pageview event
-                    yield session.asdict()
+                    yield self.yield_event(session)
                 elif not session.is_new_page and session.custom_event != 'pageview':
                     # custome events
                     if session.modal_event != session.custom_event:
                         # any custom event that is not the current modal
-                        yield session.asdict()
+                        yield self.yield_event(session)
                     else:
                         # modal custom event (only when yield_modal)
                         # ^ indicates function XOR
                         if not (session.modal ^ session.yield_modal):
-                            yield session.asdict()
+                            yield self.yield_event(session)
+
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError("Type %s not serializable" % type(obj))
