@@ -136,12 +136,18 @@ class Simulation():
         return self.cur_sessions
 
     def update_all_sessions(self) -> None:
+        """
+        Function to run one step of a simulation.
+        """
         for session in list(self.cur_sessions):
             session.update(session.current_timestamp + self.get_curr_duration(), self.always_forward)
             if not session.is_active():
                 self.cur_sessions.remove(session)
 
     def yield_event(self, session):
+        """
+        Function yield event depending if it is wanted as json or dict
+        """
         if self.yield_as_json:
             return json.dumps(session.asdict(), default=json_serial)
         else:
